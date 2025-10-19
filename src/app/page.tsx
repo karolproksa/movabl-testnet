@@ -1,103 +1,223 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { PropertyListing } from '@/types';
+import { MapPin, DollarSign, Users, Calendar } from 'lucide-react';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+// Mock data for initial properties
+const mockProperties: PropertyListing[] = [
+  {
+    id: '1',
+    name: 'Ocean View Villa',
+    description: 'Luxurious beachfront villa with panoramic ocean views, private pool, and modern amenities. Perfect for vacation rentals or permanent residence.',
+    photo: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop',
+    totalPrice: 2500000,
+    shares: 1000,
+    pricePerShare: 2500,
+    createdAt: '2024-01-15T10:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Mountain Retreat Cabin',
+    description: 'Cozy log cabin nestled in the mountains with stunning forest views, fireplace, and hiking trails nearby. Ideal for nature lovers.',
+    photo: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
+    totalPrice: 450000,
+    shares: 450,
+    pricePerShare: 1000,
+    createdAt: '2024-01-20T14:30:00Z',
+  },
+  {
+    id: '3',
+    name: 'Downtown Penthouse',
+    description: 'Modern penthouse in the heart of the city with floor-to-ceiling windows, rooftop terrace, and premium finishes throughout.',
+    photo: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
+    totalPrice: 1800000,
+    shares: 900,
+    pricePerShare: 2000,
+    createdAt: '2024-02-01T09:15:00Z',
+  },
+  {
+    id: '4',
+    name: 'Historic Brownstone',
+    description: 'Beautifully restored historic brownstone with original architectural details, modern kitchen, and private garden.',
+    photo: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
+    totalPrice: 1200000,
+    shares: 600,
+    pricePerShare: 2000,
+    createdAt: '2024-02-10T16:45:00Z',
+  },
+  {
+    id: '5',
+    name: 'Lakefront Estate',
+    description: 'Sprawling estate on pristine lakefront property with boat dock, tennis court, and multiple guest houses.',
+    photo: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop',
+    totalPrice: 3500000,
+    shares: 1750,
+    pricePerShare: 2000,
+    createdAt: '2024-02-15T11:20:00Z',
+  },
+  {
+    id: '6',
+    name: 'Desert Oasis Villa',
+    description: 'Modern villa in desert landscape with infinity pool, outdoor kitchen, and stunning sunset views over the mountains.',
+    photo: 'https://images.unsplash.com/photo-1600596542815-ffad4c69b9a8?w=800&h=600&fit=crop',
+    totalPrice: 950000,
+    shares: 950,
+    pricePerShare: 1000,
+    createdAt: '2024-02-20T13:10:00Z',
+  },
+];
+
+export default function HomePage() {
+  const [properties, setProperties] = useState<PropertyListing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Load properties from localStorage or use mock data
+    const savedProperties = localStorage.getItem('realEstateProperties');
+    if (savedProperties) {
+      const parsedProperties = JSON.parse(savedProperties);
+      setProperties(parsedProperties);
+    } else {
+      // Initialize with mock data
+      setProperties(mockProperties);
+      localStorage.setItem('realEstateProperties', JSON.stringify(mockProperties));
+    }
+    setLoading(false);
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading properties...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              Invest in Real Estate from as little as $1
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-blue-100">
+              Tokenized Real Estate Products
+            </p>
+            <div className="flex justify-center space-x-8 text-lg">
+              <div className="flex items-center space-x-2">
+                <Users className="w-6 h-6" />
+                <span>{properties.length} Properties</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-6 h-6" />
+                <span>Starting from $1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Properties Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Available Properties</h2>
+          <p className="text-gray-600">Browse our curated selection of tokenized real estate investments</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {properties.map((property) => (
+            <div key={property.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative">
+                <img
+                  src={property.photo}
+                  alt={property.name}
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute top-4 right-4 bg-white bg-opacity-90 px-3 py-1 rounded-full">
+                  <span className="text-sm font-semibold text-gray-800">
+                    {property.shares} shares
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{property.name}</h3>
+                <p className="text-gray-600 mb-4 line-clamp-3">{property.description}</p>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Total Value</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(property.totalPrice)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Price per Share</span>
+                    <span className="font-semibold text-blue-600">{formatPrice(property.pricePerShare)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Listed</span>
+                    <span className="text-sm text-gray-600">{formatDate(property.createdAt)}</span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <Link
+                    href={`/property/${property.id}`}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors text-center"
+                  >
+                    View Details
+                  </Link>
+                  <Link
+                    href={`/property/${property.id}`}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors text-center"
+                  >
+                    Buy Shares
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {properties.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Properties Available</h3>
+            <p className="text-gray-600 mb-6">Be the first to create a property listing!</p>
+            <Link
+              href="/create"
+              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Create Listing
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
